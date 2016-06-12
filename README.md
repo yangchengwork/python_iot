@@ -1,1 +1,3 @@
 # python_mpu6050
+
+ZQ大妈发邮件到SZDIY希望可以在python下驱动MPU6050，他提供了一份C的代码，个人先尝试将其使用GCC可以编译
