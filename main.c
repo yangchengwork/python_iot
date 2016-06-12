@@ -6,17 +6,40 @@ LEADIY-M3测试程序示例V2.2
 *************************************/
 
 #include "string.h"
-#include "stm32f10x.h"
-#include "sys.h"
-#include "usart.h"
-#include "delay.h"
-#include "drv_Uart.h"
+// #include "stm32f10x.h"
+// #include "sys.h"
+// #include "usart.h"
+// #include "delay.h"
+// #include "drv_Uart.h"
+#include <stdio.h>
 
+typedef short int16_t;
+typedef int   int32_t;
+typedef unsigned short uint16_t;
+typedef unsigned int   uint32_t;
 
 int16_t Gyro[3], Acc[3], Angle[3], Mag[3];
 int32_t Altitude, Pressure;
 float Temper, GyroDPS[3], AccG[3], MagGauss[3], AngleDeg[3];
 
+
+unsigned char uartRead(void)
+{
+    return 0;
+}
+
+void systemInit(void)
+{
+}
+
+void delay_ms(uint32_t count)
+{
+}
+
+unsigned char uartAvailable(void)
+{
+    return 1;
+}
 
 /*读两个字节组成一个16位数*/
 int16_t ReadW(void)
@@ -48,7 +71,7 @@ uint16_t BufW;
     if(uartAvailable()) //检测是否收到LEADIY-M3数据
     {  
       BufC = uartRead(); //读一个字节
-      if((BufC==0xA7)){  //判断是否为帧 头
+      if(BufC==0xA7){  //判断是否为帧 头
         BufC = uartRead(); //读一个字节
         if (BufC==0x7A) { //判断是否为帧头
           BufC = uartRead(); //读一个字节
