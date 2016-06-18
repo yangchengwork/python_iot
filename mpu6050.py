@@ -5,7 +5,10 @@ import serial
 import struct
 
 # SerName = "/dev/cu.usbserial";
-SerName = "/dev/cu.usbserial-AL0172VQ";
+# Mac OSX 
+# SerName = "/dev/cu.usbserial-AL0172VQ";
+# Linux
+SerName = "/dev/ttyUSB0";
 BPS = 115200;
 
 DATAFIRSTBYTE       = 0xA7;
@@ -109,4 +112,7 @@ if __name__ == '__main__':
     while True:
         mpu6050.waitStart();
         cmdtype, data = mpu6050.readData();
-        print dataCmdDict[cmdtype], repr(data);
+        if (len(data) > 0) :
+            print dataCmdDict[cmdtype], repr(data);
+        else :
+            print "CRC Error CMD " + dataCmdDict[cmdtype];
