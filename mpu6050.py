@@ -9,7 +9,9 @@ import time
 # Mac OSX 
 # SerName = "/dev/cu.usbserial-AL0172VQ";
 # Linux
-SerName = "/dev/ttyUSB1";
+# SerName = "/dev/ttyUSB1";
+# Windows 10
+SerName = "/dev/ttyS2";
 BPS = 115200;
 
 DATAFIRSTBYTE       = 0xA7;
@@ -123,7 +125,10 @@ if __name__ == '__main__':
             print dataCmdDict[cmdtype], repr(data);
         else :
             fail = fail + 1;
-            print "CRC Error CMD " + dataCmdDict[cmdtype];
+	    if dataCmdDict.has_key(cmdtype):
+                print "CRC Error CMD " + dataCmdDict[cmdtype];
+	    else:
+	        print "cmdtype=0x%02x" % (cmdtype);
         i = i + 1;
 
     tt1 = time.time();
