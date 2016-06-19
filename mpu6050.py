@@ -4,14 +4,16 @@
 import serial
 import struct
 import time
+import Gnuplot
+from numpy import *
 
 # SerName = "/dev/cu.usbserial";
 # Mac OSX 
 # SerName = "/dev/cu.usbserial-AL0172VQ";
 # Linux
-# SerName = "/dev/ttyUSB1";
+SerName = "/dev/ttyUSB1";
 # Windows 10
-SerName = "/dev/ttyS2";
+# SerName = "/dev/ttyS2";
 BPS = 115200;
 
 DATAFIRSTBYTE       = 0xA7;
@@ -41,14 +43,29 @@ CMDOFFALL           = 0x21;
 CMDONANGLE          = 0x24;
 CMDOFFANGLE         = 0x25;
 
+MAXXSIZE            = 500;
+
 class Gump_Uart(object):
     ser = 0;
+    accX = [[0, 0]];
+    accY = [[0, 0]];
+    accZ = [[0, 0]];
+    gp = 0;
+    plotAccX = 0;
+    plotAccY = 0;
+    plotAccZ = 0;
+    conut = 0;
 
     def __init(self):
         pass
 
     def openPort(self, name, bps):
         self.ser = serial.Serial(name, bps);
+        self.gp = Gnuplot.Gnuplot(persist=1);
+        self.gp("set title x11 size 800,600");
+        # self.gp('set yrange [-32767:32768]')
+        self.gp('set yrange [-4096:4096]')
+        self.count = 0;
 
     def waitStart(self):
         data = 0;
@@ -103,6 +120,30 @@ class Gump_Uart(object):
     def sendReset(self):
         self.sendCmd(CMDRESET, CMDRESET);
 
+    def allDataAnsisy(self, data):
+        self.count = self.count + 1;
+        if self.count >= MAXXSIZE:
+            self.accX = self.accX[1:];
+            self.accY = self.accY[1:];
+            self.accZ = self.accZ[1:];
+            self.count = MAXXSIZE - 1;
+        i = 0;
+        while i < self.count - 1:
+            self.accX[i] = [i, self.accX[i+1][1]];
+            self.accY[i] = [i, self.accY[i+1][1]];
+            self.accZ[i] = [i, self.accZ[i+1][1]];
+            i = i + 1;
+        self.accX.append([self.count, data[3]]);
+        self.accY.append([self.count, data[4]]);
+        self.accZ.append([self.count, data[5]]);
+        if len(self.accX) > 2:
+            # print repr(self.accX), repr(self.accY), repr(self.accZ);
+            self.plotAccX = Gnuplot.PlotItems.Data(self.accX, with_="linespoints lt rgb 'red' lw 6 pt 1", title="Acc X");
+            self.plotAccY = Gnuplot.PlotItems.Data(self.accY, with_="linespoints lt rgb 'yellow' lw 6 pt 1", title="Acc Y");
+            self.plotAccZ = Gnuplot.PlotItems.Data(self.accZ, with_="linespoints lt rgb 'blue' lw 6 pt 1", title="Acc Z");
+            self.gp.plot(self.plotAccX, self.plotAccY, self.plotAccZ); 
+            # self.gp.plot(self.accX, self.accY, self.accZ); 
+
 
 if __name__ == '__main__':
     mpu6050 = Gump_Uart();
@@ -122,7 +163,9 @@ if __name__ == '__main__':
         cmdtype, data = mpu6050.readData();
         if (len(data) > 0) :
             success = success + 1;
-            print dataCmdDict[cmdtype], repr(data);
+            # print dataCmdDict[cmdtype], repr(data);
+            if (cmdtype == 0x60) :
+                mpu6050.allDataAnsisy(data);
         else :
             fail = fail + 1;
 	    if dataCmdDict.has_key(cmdtype):
