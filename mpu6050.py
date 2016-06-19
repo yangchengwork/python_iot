@@ -3,12 +3,13 @@
 
 import serial
 import struct
+import time
 
 # SerName = "/dev/cu.usbserial";
 # Mac OSX 
 # SerName = "/dev/cu.usbserial-AL0172VQ";
 # Linux
-SerName = "/dev/ttyUSB0";
+SerName = "/dev/ttyUSB1";
 BPS = 115200;
 
 DATAFIRSTBYTE       = 0xA7;
@@ -109,10 +110,22 @@ if __name__ == '__main__':
     # mpu6050.sendReset();
     mpu6050.sendAllOutput();
     # for i in range(100):
-    while True:
+    i = 0;
+    success = 0;
+    fail = 0;
+    tt0 = time.time();
+    ct0 = time.clock();
+    while i < 10000:
         mpu6050.waitStart();
         cmdtype, data = mpu6050.readData();
         if (len(data) > 0) :
+            success = success + 1;
             print dataCmdDict[cmdtype], repr(data);
         else :
+            fail = fail + 1;
             print "CRC Error CMD " + dataCmdDict[cmdtype];
+        i = i + 1;
+
+    tt1 = time.time();
+    ct1 = time.clock();
+    print "total read 10K time=%f cputime=%f success=%d fail=%d" % (tt1-tt0, ct1-ct0, success, fail);
